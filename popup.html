@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Reminder Assistant</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 400px;
+      min-height: 500px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      border-radius: 8px;
+      margin: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .gear-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      color: #666;
+      transition: transform 0.3s;
+    }
+
+    .gear-btn:hover {
+      transform: rotate(90deg);
+      color: #667eea;
+    }
+
+    .setup-form {
+      display: none;
+    }
+
+    .setup-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group input::placeholder {
+      color: #999;
+    }
+
+    .optional {
+      color: #999;
+      font-size: 11px;
+      font-weight: normal;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .main-view {
+      display: none;
+    }
+
+    .main-view.active {
+      display: block;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 15px;
+    }
+
+    .action-section {
+      margin-top: 20px;
+    }
+
+    .action-section h3 {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .btn-action {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-action:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .custom-body-section {
+      display: none;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #667eea;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .success-msg {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .success-msg.active {
+      display: block;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💰 Payment Reminders</h1>
+      <button class="gear-btn" id="settingsBtn">⚙️</button>
+    </div>
+
+    <div class="success-msg" id="successMsg"></div>
+
+    <!-- Setup Form -->
+    <div class="setup-form active" id="setupForm">
+      <h2 style="font-size: 16px; margin-bottom: 15px; color: #333;">Initial Setup</h2>
+      <form id="configForm">
+        <div class="form-group">
+          <label for="userName">Your Name</label>
+          <input type="text" id="userName" placeholder="e.g., Rajesh Kumar" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="userEmail">Your Email</label>
+          <input type="email" id="userEmail" placeholder="e.g., rajesh@business.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="businessPhone">Business Phone Number <span class="optional">(Optional)</span></label>
+          <input type="tel" id="businessPhone" placeholder="e.g., +91 98765 43210">
+        </div>
+        
+        <div class="form-group">
+          <label for="sheetLink">Google Sheets Link</label>
+          <input type="url" id="sheetLink" placeholder="https://docs.google.com/spreadsheets/d/..." required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Save Configuration</button>
+      </form>
+    </div>
+
+    <!-- Main View -->
+    <div class="main-view" id="mainView">
+      <div class="status-badge">✓ Configured</div>
+      
+      <div class="action-section">
+        <h3>📧 Send Email Reminders</h3>
+        
+        <button class="btn btn-action" data-status="pending">Send to Pending</button>
+        <button class="btn btn-action" data-status="partial">Send to Partial</button>
+        <button class="btn btn-action" data-status="paid">Send to Paid</button>
+        <button class="btn btn-action" data-status="all">Send All</button>
+
+        <div class="section-divider"></div>
+
+        <h3>📱 Send WhatsApp Messages</h3>
+        <button class="btn btn-action" id="sendWhatsAppBtn">
+          <span>💬</span> Send WhatsApp to All
+        </button>
+      </div>
+
+      <div class="info-text">
+        Click the gear icon ⚙️ to update settings
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loadingState">
+      <div class="spinner"></div>
+      <p>Processing...</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
