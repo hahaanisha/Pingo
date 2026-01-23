@@ -4,7 +4,6 @@ let config = {
   userEmail: "",
   businessPhone: "",
   sheetLink: "",
-  n8nWebhookUrl: "", // You'll set this later when you create the n8n workflow
 };
 
 // DOM elements
@@ -15,6 +14,9 @@ const settingsBtn = document.getElementById("settingsBtn");
 const sendWhatsAppBtn = document.getElementById("sendWhatsAppBtn");
 const loadingState = document.getElementById("loadingState");
 const successMsg = document.getElementById("successMsg");
+
+// n8n webhook URL
+const N8N_WEBHOOK_URL = "https://gadgetejas.app.n8n.cloud/webhook/reminders";
 
 // Initialize the extension
 document.addEventListener("DOMContentLoaded", async () => {
@@ -29,7 +31,6 @@ async function loadConfig() {
     chrome.storage.sync.get(["config"], (result) => {
       if (result.config) {
         config = result.config;
-
         // Populate form fields if config exists
         document.getElementById("userName").value = config.userName || "";
         document.getElementById("userEmail").value = config.userEmail || "";
@@ -54,7 +55,6 @@ async function saveConfig() {
 // Check if setup is complete and show appropriate view
 function checkSetupStatus() {
   const isConfigured = config.userName && config.userEmail && config.sheetLink;
-
   if (isConfigured) {
     setupForm.classList.remove("active");
     mainView.classList.add("active");
@@ -118,23 +118,17 @@ async function handleConfigSubmit(e) {
 
 // Handle email send for different statuses
 async function handleEmailSend(status) {
-  // Prepare payload
-  const payload = {
-    action: "email",
-    sheetLink: config.sheetLink,
-    config: {
-      userName: config.userName,
-      userEmail: config.userEmail,
-    },
-    timestamp: new Date().toISOString(),
-  };
-
-  // Add status only if not "all"
-  if (status !== "all") {
-    payload.status = status;
+  if (!config.sheetLink) {
+    showMessage("Please configure your Google Sheet first", "error");
+    return;
   }
 
-  await sendToN8N(payload, `Email sent to ${status} recipients`);
+  const payload = {
+    url: config.sheetLink,
+    status: status, // "pending", "partial", "paid", or "all"
+  };
+
+  await sendToN8N(payload, `Emails sent to ${status} recipients`);
 }
 
 // Handle WhatsApp send
@@ -144,16 +138,15 @@ async function handleWhatsAppSend() {
     return;
   }
 
-  // Prepare payload
+  if (!config.sheetLink) {
+    showMessage("Please configure your Google Sheet first", "error");
+    return;
+  }
+
+  // For WhatsApp, we send ALL reminders (no status filter)
   const payload = {
-    action: "whatsapp",
-    sheetLink: config.sheetLink,
-    config: {
-      userName: config.userName,
-      userEmail: config.userEmail,
-      businessPhone: config.businessPhone,
-    },
-    timestamp: new Date().toISOString(),
+    url: config.sheetLink,
+    status: "all", // or you can remove status completely if n8n expects it only for emails
   };
 
   await sendToN8N(payload, "WhatsApp messages sent successfully");
@@ -161,44 +154,27 @@ async function handleWhatsAppSend() {
 
 // Send data to n8n webhook
 async function sendToN8N(payload, successMessage) {
-  // Show loading state
   showLoading(true);
 
   try {
-    // TODO: Replace this with your actual n8n webhook URL
-    const n8nWebhookUrl = "YOUR_N8N_WEBHOOK_URL_HERE";
-
-    // Log the payload for testing
     console.log("Sending to n8n:", payload);
-    console.log("-------------------");
-    console.log("Payload Details:");
-    console.log("Action:", payload.action);
-    console.log("Sheet Link:", payload.sheetLink);
-    if (payload.status) console.log("Status Filter:", payload.status);
-    console.log("-------------------");
 
-    /*
-    // Uncomment this when you have your n8n webhook ready
-    const response = await fetch(n8nWebhookUrl, {
-      method: 'POST',
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to send to n8n');
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    
-    const result = await response.json();
-    console.log('n8n response:', result);
-    */
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Optional: read response if your webhook returns something useful
+    // const result = await response.json();
+    // console.log("n8n response:", result);
 
-    // Show success message
     showMessage(`✓ ${successMessage}`, "success");
   } catch (error) {
     console.error("Error sending to n8n:", error);
