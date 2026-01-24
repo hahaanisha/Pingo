@@ -4,7 +4,11 @@ let config = {
   userEmail: "",
   businessPhone: "",
   sheetLink: "",
+  automationStatus: false,
 };
+
+// Track which button's custom body is being edited
+let activeCustomBodyFor = null;
 
 // DOM elements
 const setupForm = document.getElementById("setupForm");
@@ -14,15 +18,25 @@ const settingsBtn = document.getElementById("settingsBtn");
 const sendWhatsAppBtn = document.getElementById("sendWhatsAppBtn");
 const loadingState = document.getElementById("loadingState");
 const successMsg = document.getElementById("successMsg");
+const customBodySection = document.getElementById("customBodySection");
+const customBodyText = document.getElementById("customBodyText");
+const automationToggle = document.getElementById("automationToggle");
 
-// n8n webhook URL
-const N8N_WEBHOOK_URL = "https://gadgetejas.app.n8n.cloud/webhook/reminders";
+// n8n webhook URLs
+const N8N_WELCOME_WEBHOOK = "https://gadgetejas.app.n8n.cloud/webhook/welcome";
+const N8N_REMINDER_WEBHOOK =
+  "https://gadgetejas.app.n8n.cloud/webhook/reminders";
+const N8N_ALL_REMINDER_WEBHOOK =
+  "https://gadgetejas.app.n8n.cloud/webhook/allReminder";
+const N8N_PAID_REMINDER_WEBHOOK =
+  "https://gadgetejas.app.n8n.cloud/webhook/paidReminder";
 
 // Initialize the extension
 document.addEventListener("DOMContentLoaded", async () => {
   await loadConfig();
   checkSetupStatus();
   setupEventListeners();
+  updateToggleUI();
 });
 
 // Load configuration from Chrome storage
@@ -64,6 +78,15 @@ function checkSetupStatus() {
   }
 }
 
+// Update toggle UI based on config
+function updateToggleUI() {
+  if (config.automationStatus) {
+    automationToggle.classList.add("active");
+  } else {
+    automationToggle.classList.remove("active");
+  }
+}
+
 // Setup all event listeners
 function setupEventListeners() {
   // Configuration form submission
@@ -73,6 +96,14 @@ function setupEventListeners() {
   settingsBtn.addEventListener("click", () => {
     mainView.classList.remove("active");
     setupForm.classList.add("active");
+    customBodySection.classList.remove("active");
+    updateToggleUI();
+  });
+
+  // Automation toggle
+  automationToggle.addEventListener("click", () => {
+    config.automationStatus = !config.automationStatus;
+    updateToggleUI();
   });
 
   // Email buttons (pending, partial, paid, all)
@@ -84,8 +115,49 @@ function setupEventListeners() {
     });
   });
 
+  // Mini gear buttons
+  const miniGears = document.querySelectorAll(".mini-gear");
+  miniGears.forEach((gear) => {
+    gear.addEventListener("click", () => {
+      const forButton = gear.getAttribute("data-for");
+      toggleCustomBody(forButton, gear);
+    });
+  });
+
   // WhatsApp button
   sendWhatsAppBtn.addEventListener("click", handleWhatsAppSend);
+}
+
+// Toggle custom body editor
+function toggleCustomBody(forButton, gearElement) {
+  // If clicking the same button, toggle off
+  if (
+    activeCustomBodyFor === forButton &&
+    customBodySection.classList.contains("active")
+  ) {
+    customBodySection.classList.remove("active");
+    gearElement.classList.remove("active");
+    activeCustomBodyFor = null;
+    customBodyText.value = "";
+
+    // Remove active class from all gears
+    document
+      .querySelectorAll(".mini-gear")
+      .forEach((g) => g.classList.remove("active"));
+  } else {
+    // Show custom body section
+    customBodySection.classList.add("active");
+    activeCustomBodyFor = forButton;
+
+    // Update active state on gears
+    document
+      .querySelectorAll(".mini-gear")
+      .forEach((g) => g.classList.remove("active"));
+    gearElement.classList.add("active");
+
+    // Focus on textarea
+    customBodyText.focus();
+  }
 }
 
 // Handle configuration form submission
@@ -107,6 +179,9 @@ async function handleConfigSubmit(e) {
   // Save to storage
   await saveConfig();
 
+  // Send welcome webhook with automation status
+  await sendWelcomeWebhook();
+
   // Show success message
   showMessage("✓ Configuration saved successfully!", "success");
 
@@ -116,6 +191,35 @@ async function handleConfigSubmit(e) {
   }, 1000);
 }
 
+// Send welcome webhook when setup is saved
+async function sendWelcomeWebhook() {
+  try {
+    const payload = {
+      url: config.sheetLink,
+      automationStatus: config.automationStatus.toString(), // Convert boolean to string
+    };
+
+    console.log("Sending to welcome webhook:", payload);
+
+    const response = await fetch(N8N_WELCOME_WEBHOOK, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      console.error("Welcome webhook failed:", response.status);
+    } else {
+      console.log("Welcome webhook sent successfully");
+    }
+  } catch (error) {
+    console.error("Error sending welcome webhook:", error);
+    // Don't show error to user for welcome webhook - it's not critical
+  }
+}
+
 // Handle email send for different statuses
 async function handleEmailSend(status) {
   if (!config.sheetLink) {
@@ -123,12 +227,31 @@ async function handleEmailSend(status) {
     return;
   }
 
+  const customBody = customBodyText.value.trim();
+
   const payload = {
     url: config.sheetLink,
-    status: status, // "pending", "partial", "paid", or "all"
   };
 
-  await sendToN8N(payload, `Emails sent to ${status} recipients`);
+  // Add custom body (required for all webhooks, empty string if not provided)
+  payload.body = customBody || "";
+
+  // Route to different webhooks based on status
+  let webhookUrl = N8N_REMINDER_WEBHOOK;
+  let successMessage = `Emails sent to ${status} recipients`;
+
+  if (status === "all") {
+    webhookUrl = N8N_ALL_REMINDER_WEBHOOK;
+    successMessage = "All reminders sent successfully";
+  } else if (status === "paid") {
+    webhookUrl = N8N_PAID_REMINDER_WEBHOOK;
+    successMessage = "Paid reminders sent successfully";
+  } else {
+    // For pending and partial, include status
+    payload.status = status;
+  }
+
+  await sendToN8N(payload, successMessage, webhookUrl);
 }
 
 // Handle WhatsApp send
@@ -143,23 +266,33 @@ async function handleWhatsAppSend() {
     return;
   }
 
-  // For WhatsApp, we send ALL reminders (no status filter)
   const payload = {
     url: config.sheetLink,
-    status: "all", // or you can remove status completely if n8n expects it only for emails
+    status: "all",
   };
 
   await sendToN8N(payload, "WhatsApp messages sent successfully");
 }
 
-// Send data to n8n webhook
-async function sendToN8N(payload, successMessage) {
+// Send data to n8n reminder webhook
+async function sendToN8N(
+  payload,
+  successMessage,
+  webhookUrl = N8N_REMINDER_WEBHOOK,
+) {
   showLoading(true);
 
   try {
-    console.log("Sending to n8n:", payload);
+    console.log("Sending to n8n:", webhookUrl);
+    console.log("-------------------");
+    console.log("Payload Details:");
+    console.log("URL:", payload.url);
+    if (payload.status) console.log("Status:", payload.status);
+    console.log("Body:", payload.body || "(empty)");
+    console.log("Full Payload:", JSON.stringify(payload, null, 2));
+    console.log("-------------------");
 
-    const response = await fetch(N8N_WEBHOOK_URL, {
+    const response = await fetch(webhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -171,11 +304,15 @@ async function sendToN8N(payload, successMessage) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
-    // Optional: read response if your webhook returns something useful
-    // const result = await response.json();
-    // console.log("n8n response:", result);
-
     showMessage(`✓ ${successMessage}`, "success");
+
+    // Clear custom body after successful send
+    customBodyText.value = "";
+    customBodySection.classList.remove("active");
+    document
+      .querySelectorAll(".mini-gear")
+      .forEach((g) => g.classList.remove("active"));
+    activeCustomBodyFor = null;
   } catch (error) {
     console.error("Error sending to n8n:", error);
     showMessage("❌ Failed to send. Please try again.", "error");
