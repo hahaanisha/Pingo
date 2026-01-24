@@ -7,25 +7,31 @@ let config = {
   automationStatus: false,
 };
 
-// Track which button's custom body is being edited
-let activeCustomBodyFor = null;
-
 // DOM elements
 const setupForm = document.getElementById("setupForm");
 const mainView = document.getElementById("mainView");
 const configForm = document.getElementById("configForm");
 const settingsBtn = document.getElementById("settingsBtn");
-const sendWhatsAppBtn = document.getElementById("sendWhatsAppBtn");
+const closeBtn = document.getElementById("closeBtn");
 const loadingState = document.getElementById("loadingState");
 const successMsg = document.getElementById("successMsg");
+const automationToggle = document.getElementById("automationToggle");
+
+// Main view elements
+const reminderType = document.getElementById("reminderType");
+const reminderTo = document.getElementById("reminderTo");
+const customBodyToggleGroup = document.getElementById("customBodyToggleGroup");
+const customBodyToggle = document.getElementById("customBodyToggle");
 const customBodySection = document.getElementById("customBodySection");
 const customBodyText = document.getElementById("customBodyText");
-const automationToggle = document.getElementById("automationToggle");
+const sendReminderBtn = document.getElementById("sendReminderBtn");
 
 // n8n webhook URLs
 const N8N_WELCOME_WEBHOOK = "https://gadgetejas.app.n8n.cloud/webhook/welcome";
 const N8N_REMINDER_WEBHOOK =
   "https://gadgetejas.app.n8n.cloud/webhook/reminders";
+const N8N_REMINDER_WP_WEBHOOK =
+  "https://gadgetejas.app.n8n.cloud/webhook/reminderWp";
 const N8N_ALL_REMINDER_WEBHOOK =
   "https://gadgetejas.app.n8n.cloud/webhook/allReminder";
 const N8N_PAID_REMINDER_WEBHOOK =
@@ -87,6 +93,24 @@ function updateToggleUI() {
   }
 }
 
+// Update Type dropdown based on To selection
+function updateTypeDropdown() {
+  const selectedTo = reminderTo.value;
+
+  if (selectedTo === "paid" || selectedTo === "all") {
+    // Set to "both" and disable
+    reminderType.value = "both";
+    reminderType.disabled = true;
+    customBodyToggleGroup.style.display = "flex";
+  } else {
+    // Enable and allow selection
+    reminderType.disabled = false;
+    customBodyToggleGroup.style.display = "none";
+    customBodyToggle.classList.remove("active");
+    customBodySection.classList.remove("active");
+  }
+}
+
 // Setup all event listeners
 function setupEventListeners() {
   // Configuration form submission
@@ -96,8 +120,12 @@ function setupEventListeners() {
   settingsBtn.addEventListener("click", () => {
     mainView.classList.remove("active");
     setupForm.classList.add("active");
-    customBodySection.classList.remove("active");
     updateToggleUI();
+  });
+
+  // Close button
+  closeBtn.addEventListener("click", () => {
+    window.close();
   });
 
   // Automation toggle
@@ -106,58 +134,23 @@ function setupEventListeners() {
     updateToggleUI();
   });
 
-  // Email buttons (pending, partial, paid, all)
-  const emailButtons = document.querySelectorAll("[data-status]");
-  emailButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const status = btn.getAttribute("data-status");
-      handleEmailSend(status);
-    });
+  // Reminder "To" dropdown - update Type dropdown
+  reminderTo.addEventListener("change", updateTypeDropdown);
+
+  // Custom body toggle
+  customBodyToggle.addEventListener("click", () => {
+    customBodyToggle.classList.toggle("active");
+    if (customBodyToggle.classList.contains("active")) {
+      customBodySection.classList.add("active");
+      customBodyText.focus();
+    } else {
+      customBodySection.classList.remove("active");
+      customBodyText.value = "";
+    }
   });
 
-  // Mini gear buttons
-  const miniGears = document.querySelectorAll(".mini-gear");
-  miniGears.forEach((gear) => {
-    gear.addEventListener("click", () => {
-      const forButton = gear.getAttribute("data-for");
-      toggleCustomBody(forButton, gear);
-    });
-  });
-
-  // WhatsApp button
-  sendWhatsAppBtn.addEventListener("click", handleWhatsAppSend);
-}
-
-// Toggle custom body editor
-function toggleCustomBody(forButton, gearElement) {
-  // If clicking the same button, toggle off
-  if (
-    activeCustomBodyFor === forButton &&
-    customBodySection.classList.contains("active")
-  ) {
-    customBodySection.classList.remove("active");
-    gearElement.classList.remove("active");
-    activeCustomBodyFor = null;
-    customBodyText.value = "";
-
-    // Remove active class from all gears
-    document
-      .querySelectorAll(".mini-gear")
-      .forEach((g) => g.classList.remove("active"));
-  } else {
-    // Show custom body section
-    customBodySection.classList.add("active");
-    activeCustomBodyFor = forButton;
-
-    // Update active state on gears
-    document
-      .querySelectorAll(".mini-gear")
-      .forEach((g) => g.classList.remove("active"));
-    gearElement.classList.add("active");
-
-    // Focus on textarea
-    customBodyText.focus();
-  }
+  // Send reminder button
+  sendReminderBtn.addEventListener("click", handleSendReminder);
 }
 
 // Handle configuration form submission
@@ -196,7 +189,8 @@ async function sendWelcomeWebhook() {
   try {
     const payload = {
       url: config.sheetLink,
-      automationStatus: config.automationStatus.toString(), // Convert boolean to string
+      automationStatus: config.automationStatus.toString(),
+      name: config.userName,
     };
 
     console.log("Sending to welcome webhook:", payload);
@@ -216,70 +210,82 @@ async function sendWelcomeWebhook() {
     }
   } catch (error) {
     console.error("Error sending welcome webhook:", error);
-    // Don't show error to user for welcome webhook - it's not critical
   }
 }
 
-// Handle email send for different statuses
-async function handleEmailSend(status) {
+// Handle send reminder button click
+async function handleSendReminder() {
   if (!config.sheetLink) {
     showMessage("Please configure your Google Sheet first", "error");
     return;
   }
 
+  const type = reminderType.value; // email, whatsapp, both
+  const to = reminderTo.value; // pending, partial, paid, all
   const customBody = customBodyText.value.trim();
 
-  const payload = {
-    url: config.sheetLink,
-  };
-
-  // Add custom body (required for all webhooks, empty string if not provided)
-  payload.body = customBody || "";
-
-  // Route to different webhooks based on status
-  let webhookUrl = N8N_REMINDER_WEBHOOK;
-  let successMessage = `Emails sent to ${status} recipients`;
-
-  if (status === "all") {
-    webhookUrl = N8N_ALL_REMINDER_WEBHOOK;
-    successMessage = "All reminders sent successfully";
-  } else if (status === "paid") {
-    webhookUrl = N8N_PAID_REMINDER_WEBHOOK;
-    successMessage = "Paid reminders sent successfully";
-  } else {
-    // For pending and partial, include status
-    payload.status = status;
-  }
-
-  await sendToN8N(payload, successMessage, webhookUrl);
-}
-
-// Handle WhatsApp send
-async function handleWhatsAppSend() {
-  if (!config.businessPhone) {
+  // Validate WhatsApp requirement
+  if ((type === "whatsapp" || type === "both") && !config.businessPhone) {
     showMessage("Please add your business phone number in settings", "error");
     return;
   }
 
-  if (!config.sheetLink) {
-    showMessage("Please configure your Google Sheet first", "error");
-    return;
-  }
-
+  // Build base payload
   const payload = {
     url: config.sheetLink,
-    status: "all",
+    body: customBody || "",
+    name: config.userName,
   };
 
-  await sendToN8N(payload, "WhatsApp messages sent successfully");
+  // Handle different combinations
+  if (to === "pending" || to === "partial") {
+    // Add status for pending/partial
+    payload.status = to;
+
+    if (type === "email") {
+      await sendToN8N(
+        payload,
+        `Email sent to ${to} recipients`,
+        N8N_REMINDER_WEBHOOK,
+      );
+    } else if (type === "whatsapp") {
+      await sendToN8N(
+        payload,
+        `WhatsApp sent to ${to} recipients`,
+        N8N_REMINDER_WP_WEBHOOK,
+      );
+    } else if (type === "both") {
+      // Send to both webhooks
+      await sendToN8N(
+        payload,
+        `Email sent to ${to} recipients`,
+        N8N_REMINDER_WEBHOOK,
+      );
+      await sendToN8N(
+        payload,
+        `WhatsApp sent to ${to} recipients`,
+        N8N_REMINDER_WP_WEBHOOK,
+      );
+    }
+  } else if (to === "paid") {
+    // Paid - always "both" (no status field)
+    await sendToN8N(
+      payload,
+      "Paid reminders sent successfully",
+      N8N_PAID_REMINDER_WEBHOOK,
+    );
+  } else if (to === "all") {
+    // All - always "both" (no status field)
+    await sendToN8N(
+      payload,
+      "All reminders sent successfully",
+      N8N_ALL_REMINDER_WEBHOOK,
+    );
+  }
 }
 
-// Send data to n8n reminder webhook
-async function sendToN8N(
-  payload,
-  successMessage,
-  webhookUrl = N8N_REMINDER_WEBHOOK,
-) {
+// Send data to n8n webhook
+async function sendToN8N(payload, successMessage, webhookUrl) {
   showLoading(true);
 
   try {
@@ -287,6 +293,7 @@ async function sendToN8N(
     console.log("-------------------");
     console.log("Payload Details:");
     console.log("URL:", payload.url);
+    console.log("Name:", payload.name);
     if (payload.status) console.log("Status:", payload.status);
     console.log("Body:", payload.body || "(empty)");
     console.log("Full Payload:", JSON.stringify(payload, null, 2));
@@ -309,10 +316,7 @@ async function sendToN8N(
     // Clear custom body after successful send
     customBodyText.value = "";
     customBodySection.classList.remove("active");
-    document
-      .querySelectorAll(".mini-gear")
-      .forEach((g) => g.classList.remove("active"));
-    activeCustomBodyFor = null;
+    customBodyToggle.classList.remove("active");
   } catch (error) {
     console.error("Error sending to n8n:", error);
     showMessage("❌ Failed to send. Please try again.", "error");
