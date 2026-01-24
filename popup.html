@@ -42,6 +42,38 @@
       font-weight: 600;
     }
 
+    .header-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: #666;
+      transition: all 0.3s;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      background: #f5f5f5;
+      color: #667eea;
+    }
+
+    .icon-btn.download-btn:hover {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
     .close-btn {
       background: none;
       border: none;
@@ -62,18 +94,42 @@
       color: #c62828;
     }
 
-    .gear-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 24px;
-      color: #666;
-      transition: transform 0.3s;
-    }
-
     .gear-btn:hover {
       transform: rotate(90deg);
-      color: #667eea;
+    }
+
+    .tooltip {
+      visibility: hidden;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 6px 10px;
+      border-radius: 6px;
+      position: absolute;
+      z-index: 1000;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 11px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #333 transparent transparent transparent;
+    }
+
+    .icon-btn:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
     }
 
     .setup-form {
@@ -126,7 +182,6 @@
       font-weight: normal;
     }
 
-    /* Toggle Switch Styles */
     .toggle-group {
       display: flex;
       justify-content: space-between;
@@ -268,6 +323,29 @@
       color: #667eea;
       margin-bottom: 10px;
       font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ai-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    }
+
+    .ai-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
     }
 
     .custom-body-section textarea {
@@ -342,14 +420,146 @@
     .success-msg.active {
       display: block;
     }
+
+    /* AI Prompt Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      width: 90%;
+      max-width: 360px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #666;
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+
+    .modal-close:hover {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .modal-body textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      transition: border-color 0.3s;
+    }
+
+    .modal-body textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .modal-footer button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+
+    .btn-cancel:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>💰 Payment Reminders</h1>
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <button class="gear-btn" id="settingsBtn">⚙️</button>
+      <h1>Automate Reminders</h1>
+      <div class="header-buttons">
+        <button class="icon-btn download-btn" id="downloadBtn">
+          📥
+          <span class="tooltip">Please make sure your CSV looks like the sample CSV</span>
+        </button>
+        <button class="icon-btn gear-btn" id="settingsBtn">
+          ⚙️
+          <span class="tooltip">Change config</span>
+        </button>
         <button class="close-btn" id="closeBtn">✕</button>
       </div>
     </div>
@@ -426,7 +636,12 @@
 
         <!-- Custom Body Editor -->
         <div class="custom-body-section" id="customBodySection">
-          <h4>✏️ Custom Message Body</h4>
+          <h4>
+            ✏️ Custom Message Body
+            <button class="ai-btn" id="aiBtn" title="Write me a prompt">
+              🤖 AI Write
+            </button>
+          </h4>
           <textarea id="customBodyText" placeholder="Write your custom message here...
 
 Example:
@@ -451,6 +666,23 @@ Thanks,
     <div class="loading" id="loadingState">
       <div class="spinner"></div>
       <p>Processing...</p>
+    </div>
+  </div>
+
+  <!-- AI Prompt Modal -->
+  <div class="modal-overlay" id="aiPromptModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🤖 AI Prompt</h3>
+        <button class="modal-close" id="aiCancelBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="aiPromptText" placeholder="Example: Give me an email for announcing 10% discount at all jeans collection Gadge Garments"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" id="aiCancelBtn2">Cancel</button>
+        <button class="btn-generate" id="aiGenerateBtn">Generate</button>
+      </div>
     </div>
   </div>
 

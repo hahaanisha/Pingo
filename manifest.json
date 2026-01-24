@@ -5,15 +5,17 @@
   "description": "Send payment reminders via Email & WhatsApp directly from Google Sheets",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "sidePanel"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon2.png",
-      "48": "icons/icon2.png",
-      "128": "icons/icon2.png"
-    }
+    "default_title": "Payment Reminder Assistant"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
   },
   "icons": {
     "16": "icons/icon2.png",
