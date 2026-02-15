@@ -1,0 +1,3738 @@
+{
+  "name": "emailGems",
+  "nodes": [
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "demo ",
+        "emailType": "text",
+        "message": "=Hi {{ $json.Client_Name }},\n\nThis is a gentle reminder that an outstanding payment of ₹{{ $json.Outstanding_Amount }} is pending.\n\nWe request you to kindly complete the payment on or before {{ $json.Due_Date }} to avoid any inconvenience.\n\nThank you for your cooperation.\n\nBest regards,\n{{ $('Webhook1').item.json.body.name }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        400
+      ],
+      "id": "365faabb-26f6-46e6-9773-33b0c9a996d6",
+      "name": "Send a message",
+      "webhookId": "a4a75a7a-7aa2-485e-a0ec-57bcd80264ca",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6SYXDjGMNbva9WFk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=done",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        432,
+        208
+      ],
+      "id": "6fa512cd-5367-47fd-a3ac-6101da9aa473",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reminders",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        400
+      ],
+      "id": "339f4187-5ff4-49d0-a8d9-cb6c54ebbcc8",
+      "name": "Webhook1",
+      "webhookId": "5693b393-b807-4126-8d5c-45c821bfbd68",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        208,
+        400
+      ],
+      "id": "363239ab-7511-4ce0-becb-cea54022409f",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.body.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -16,
+        400
+      ],
+      "id": "ef7d92ce-7bf8-4e6e-aef5-06553ff40a00",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Webhook1').item.json.body.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Invoice_ID": "={{ $('If pending').item.json.Invoice_ID }}",
+            "Last_Reminder_Sent": "={{ $today.format('yyyy-MM-dd') }}"
+          },
+          "matchingColumns": [
+            "Invoice_ID"
+          ],
+          "schema": [
+            {
+              "id": "Invoice_ID",
+              "displayName": "Invoice_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Client_Name",
+              "displayName": "Client_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Outstanding_Amount",
+              "displayName": "Outstanding_Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due_Date",
+              "displayName": "Due_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment_Status",
+              "displayName": "Payment_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last_Reminder_Sent",
+              "displayName": "Last_Reminder_Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Preferred_Channel",
+              "displayName": "Preferred_Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Remarks",
+              "displayName": "Remarks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last_Payment_Date",
+              "displayName": "Last_Payment_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "GST_Number",
+              "displayName": "GST_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        480
+      ],
+      "id": "dff9b488-aec8-4c44-8e31-bd1320fd36e7",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "057c3f5a-ef3e-4b01-ab24-ca694a2dbf60",
+              "leftValue": "={{ $json.Payment_Status.toLowerCase() }}",
+              "rightValue": "={{ $('Webhook1').item.json.body.status.toLowerCase() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        432,
+        400
+      ],
+      "id": "46720b0e-6062-4410-8c2f-9f5004e2b491",
+      "name": "If pending"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.body.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -16,
+        1072
+      ],
+      "id": "ec353f4a-feb6-4702-b921-0016808c02f6",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        208,
+        1072
+      ],
+      "id": "07d5e07f-9255-4f71-a23c-06a45c6868f6",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Reminders to all",
+        "emailType": "text",
+        "message": "={{ $('Webhook all').item.json.body.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        1120
+      ],
+      "id": "6ab856bb-6277-49b2-a8c0-0dac804f965a",
+      "name": "Send a message1",
+      "webhookId": "5b8b7ad2-2ca8-4f46-890f-518ec70b7e56",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6SYXDjGMNbva9WFk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "allReminder",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        1072
+      ],
+      "id": "20e8b047-79ac-47c9-bef6-49b68c6cbccd",
+      "name": "Webhook all",
+      "webhookId": "eee805cc-744d-4c40-b5ad-82f71732910c"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        432,
+        928
+      ],
+      "id": "588ed971-4f36-476d-af24-f1cc6e573d99",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "content": "## Reminder for pending partial \n",
+        "height": 96
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        64,
+        256
+      ],
+      "id": "dcbb9f9d-b9d0-4264-9b3f-18ba892d4abb",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Reminder send to all",
+        "height": 96
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        16,
+        896
+      ],
+      "id": "93d64361-1884-4764-bcfd-c41dda882597",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.body.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        1696
+      ],
+      "id": "7ffbf4cf-e855-4c45-958a-bbcfab29cc98",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        224,
+        1696
+      ],
+      "id": "ae02a103-77c1-447b-89b6-f37a99d367c6",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Reminders to all",
+        "emailType": "text",
+        "message": "={{ $('Webhook paid').item.json.body.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        1744
+      ],
+      "id": "aa7203c8-4ca0-4a2b-bcdb-23d6db3fe433",
+      "name": "Send a message2",
+      "webhookId": "5b8b7ad2-2ca8-4f46-890f-518ec70b7e56",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6SYXDjGMNbva9WFk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        1552
+      ],
+      "id": "5a5b8f00-9d9d-4833-867b-ddeb394877c6",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "content": "## Reminder send to paid",
+        "height": 96
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        128,
+        1536
+      ],
+      "id": "ac6cc276-f21a-4c16-9c70-a2044017236a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "paidReminder",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        1696
+      ],
+      "id": "faaa15d7-f4b0-464b-87ef-3d2ad054ffad",
+      "name": "Webhook paid",
+      "webhookId": "eee805cc-744d-4c40-b5ad-82f71732910c"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11,
+              "triggerAtMinute": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -416,
+        -208
+      ],
+      "id": "47f47f36-79d0-4334-95e6-03770e8d269d",
+      "name": "Schedule Trigger2"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "demo ",
+        "emailType": "text",
+        "message": "=hi {{ $json.Client_Name }}\nYour payment is remaining for rs.{{ $json.Outstanding_Amount }}\npay before {{ $json.Outstanding_Amount }}\n\nthankyou.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        -304
+      ],
+      "id": "642da674-a826-4b40-99d8-2cda28567a74",
+      "name": "Send a message3",
+      "webhookId": "a4a75a7a-7aa2-485e-a0ec-57bcd80264ca",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6SYXDjGMNbva9WFk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=done",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        592,
+        -480
+      ],
+      "id": "a4485d1b-78bf-4782-86b7-a0557350fc0b",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        240,
+        -208
+      ],
+      "id": "a13ab66c-7b68-4ec0-bbe5-5b7ba0f777bc",
+      "name": "Loop Over Items3"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        -208
+      ],
+      "id": "f2efbdf9-e16e-475a-9b32-2749df7833f6",
+      "name": "Get row(s) in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Get row(s)').item.json.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Invoice_ID": "={{ $('If pending1').item.json.Invoice_ID }}",
+            "Last_Reminder_Sent": "={{ $today.format('yyyy-MM-dd') }}"
+          },
+          "matchingColumns": [
+            "Invoice_ID"
+          ],
+          "schema": [
+            {
+              "id": "Invoice_ID",
+              "displayName": "Invoice_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Client_Name",
+              "displayName": "Client_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Outstanding_Amount",
+              "displayName": "Outstanding_Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due_Date",
+              "displayName": "Due_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment_Status",
+              "displayName": "Payment_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last_Reminder_Sent",
+              "displayName": "Last_Reminder_Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Preferred_Channel",
+              "displayName": "Preferred_Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Remarks",
+              "displayName": "Remarks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last_Payment_Date",
+              "displayName": "Last_Payment_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "GST_Number",
+              "displayName": "GST_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        -128
+      ],
+      "id": "3c744b29-d96d-4621-b011-e6cb322db4d1",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "057c3f5a-ef3e-4b01-ab24-ca694a2dbf60",
+              "leftValue": "={{ $json.Payment_Status.toLowerCase() }}",
+              "rightValue": "=partial",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "91febad6-c2f7-41d8-a96b-b4f9403a1184",
+              "leftValue": "={{ $json.Payment_Status.toLowerCase() }}",
+              "rightValue": "pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        -208
+      ],
+      "id": "9a0df402-f751-4c79-b14f-4d33c86ee61e",
+      "name": "If pending1"
+    },
+    {
+      "parameters": {
+        "content": "##Automating the reminders\n",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -320
+      ],
+      "id": "63be476e-c12b-439e-87b2-4f099a7fd159",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "DkD38DMDX3Bs39hh",
+          "mode": "list",
+          "cachedResultName": "Organizations",
+          "cachedResultUrl": "/projects/stBdUmDEN7jTK32O/datatables/DkD38DMDX3Bs39hh"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "automationStatus",
+              "condition": "isTrue"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -176,
+        -208
+      ],
+      "id": "a89c529b-c771-41a2-bd26-f52cd12db1ff",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "welcome",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        -704
+      ],
+      "id": "57054943-b6a1-4862-a9c5-17f3b3d9889b",
+      "name": "Webhook",
+      "webhookId": "0e766ab3-ab64-4d13-8735-ade4d18737bf"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "DkD38DMDX3Bs39hh",
+          "mode": "list",
+          "cachedResultName": "Organizations",
+          "cachedResultUrl": "/projects/stBdUmDEN7jTK32O/datatables/DkD38DMDX3Bs39hh"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "url",
+              "keyValue": "={{ $json.body.url }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "automationStatus": "={{ $json.body.automationStatus }}",
+            "url": "={{ $json.body.url }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "automationStatus",
+              "displayName": "automationStatus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        -720
+      ],
+      "id": "75bfbd8c-ac64-4102-a13e-366a96bffcb6",
+      "name": "Upsert row(s)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        -736
+      ],
+      "id": "4b7195ae-4bcb-4b41-a7e0-468781b74c77",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "content": "## WHATSAPP\n",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        2144
+      ],
+      "id": "0bd191d6-bd49-4372-b20f-afb2cb4cc808",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reminderWp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        2304
+      ],
+      "id": "5f7f9360-d993-49c0-aa3a-896ef428e0f6",
+      "name": "Webhook2",
+      "webhookId": "85d2aab3-5dd6-49f1-9fed-3fddc391271b"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "includeSpamTrash": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        2800
+      ],
+      "id": "aa0900bf-7b93-4e9d-8789-530fbb22f667",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6SYXDjGMNbva9WFk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        288,
+        2720
+      ],
+      "id": "51b91f6e-5e01-4c2b-a2c7-c8cf6f91d69b",
+      "name": "Get row(s) in sheet4",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c6a2f239-3fd9-40a4-beea-1e82d965ddfc",
+              "leftValue": "={{ $json.emails }}",
+              "rightValue": "={{ $json.from }}",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1312,
+        2784
+      ],
+      "id": "ba52201f-30f4-4b72-9808-6f7033a05489",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all sheet rows\nconst items = $input.all();\n\n// Extract emails only\nconst emails = items\n  .map(item => item.json.Email)\n  .filter(email => !!email); // remove null/empty just in case\n\n// Return as a single item with an array\nreturn [\n  {\n    json: {\n      emails\n    }\n  }\n];\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        2720
+      ],
+      "id": "d7c465de-3a4c-4f3a-8a7d-ef67c602f7b4",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mail = items[0].json;\n\n// Extract email from \"Name <email>\"\nconst extractEmail = (field) => {\n  const match = field?.match(/<([^>]+)>/);\n  return match ? match[1] : field;\n};\n\n// Decode basic HTML entities from snippet\nconst decodeHtml = (text = \"\") =>\n  text\n    .replace(/&lt;/g, \"<\")\n    .replace(/&gt;/g, \">\")\n    .replace(/&amp;/g, \"&\")\n    .replace(/&quot;/g, '\"')\n    .replace(/&#39;/g, \"'\");\n\n// Use snippet as body (best available in trigger)\nconst body = decodeHtml(mail.snippet);\n\nreturn [\n  {\n    json: {\n      from: extractEmail(mail.From),\n      to: extractEmail(mail.To),\n      body\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        2912
+      ],
+      "id": "f29985f0-22da-42a1-b24b-e47c6731d3b4",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        832,
+        2784
+      ],
+      "id": "9cdaf5a7-7147-48eb-9d6e-916efca77ec8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputA = items[0].json;\nconst inputB = items[1].json;\n\nreturn [\n  {\n    json: {\n      ...inputA,\n      ...inputB\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        2784
+      ],
+      "id": "d7758912-01b5-43b6-a6ae-fdeb1b1f4d21",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{ $('If').item.json.from }}",
+            "Remarks": "={{ $json.output.summary }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Invoice_ID",
+              "displayName": "Invoice_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Client_Name",
+              "displayName": "Client_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Outstanding_Amount",
+              "displayName": "Outstanding_Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due_Date",
+              "displayName": "Due_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment_Status",
+              "displayName": "Payment_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last_Reminder_Sent",
+              "displayName": "Last_Reminder_Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Preferred_Channel",
+              "displayName": "Preferred_Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Remarks",
+              "displayName": "Remarks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last_Payment_Date",
+              "displayName": "Last_Payment_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "GST_Number",
+              "displayName": "GST_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2000,
+        2704
+      ],
+      "id": "446deafd-2de7-4175-87ef-703f7d1bf3f9",
+      "name": "Update row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body }}\n\nabove is the response of the mail i have received just extract the core body of the mail and give me the remarks like summary of what customer says as output.\ngive me just the json and no other explanation, limit the response to 10 - 15 words",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1616,
+        2688
+      ],
+      "id": "a5f3a4e2-229a-4346-ab85-d16b66d18d62",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        2896
+      ],
+      "id": "e78d768e-5ba3-4f51-8193-b18563ad3dc4",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iVoLtt6SobtCe9yZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"summary\":\"Client said will pay tomorrow\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        2896
+      ],
+      "id": "e5b6c584-d997-4f32-a0d6-49bfc2656208",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "content": "## email response",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        2608
+      ],
+      "id": "238f70b8-0a36-4724-bd14-24c83a2aaaa2",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "1047540008434079",
+        "recipientPhoneNumber": "={{ $json.Phone_Number.toString() }}",
+        "textBody": "=hi {{ $json.Client_Name }},\nThis is a gentle reminder that an outstanding payment of ₹{{ $json.Outstanding_Amount }} is pending.\n\nWe request you to kindly complete the payment on or before {{ $json.Due_Date }}\nto avoid any inconvenience.\n\nThank you for your cooperation.\n\nBest regards,\n{{ $('Webhook2').item.json.body.name }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        2272
+      ],
+      "id": "ff5f299c-219d-4237-bc72-caa7dd8d7ba0",
+      "name": "Send message",
+      "webhookId": "df7a4b57-762a-413e-9235-b6ddb7e9cf20",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "CcOO7tMW1Qgo4aoL",
+          "name": "WhatsApp account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=done",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        752,
+        2096
+      ],
+      "id": "225b7e1b-ea6b-4b8e-85fb-939af2309f39",
+      "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        240,
+        2304
+      ],
+      "id": "77363f3a-7379-40f6-884f-01bda96f9c05",
+      "name": "Loop Over Items4"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.body.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        2304
+      ],
+      "id": "ee61086c-53a9-4fd7-857f-d995c14b20c9",
+      "name": "Get row(s) in sheet5",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Webhook2').item.json.body.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Invoice_ID": "={{ $('If pending2').item.json.Invoice_ID }}",
+            "Last_Reminder_Sent": "={{ $today.format('yyyy-MM-dd') }}"
+          },
+          "matchingColumns": [
+            "Invoice_ID"
+          ],
+          "schema": [
+            {
+              "id": "Invoice_ID",
+              "displayName": "Invoice_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Client_Name",
+              "displayName": "Client_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Outstanding_Amount",
+              "displayName": "Outstanding_Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due_Date",
+              "displayName": "Due_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment_Status",
+              "displayName": "Payment_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last_Reminder_Sent",
+              "displayName": "Last_Reminder_Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Preferred_Channel",
+              "displayName": "Preferred_Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Remarks",
+              "displayName": "Remarks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last_Payment_Date",
+              "displayName": "Last_Payment_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "GST_Number",
+              "displayName": "GST_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        2384
+      ],
+      "id": "21a64846-7b6c-4642-95aa-edaea836ec24",
+      "name": "Update row in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "057c3f5a-ef3e-4b01-ab24-ca694a2dbf60",
+              "leftValue": "={{ $json.Payment_Status.toLowerCase() }}",
+              "rightValue": "={{ $('Webhook2').item.json.body.status.toLowerCase() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        2336
+      ],
+      "id": "5afa09bc-8c42-48c8-b659-91340e8c9ed7",
+      "name": "If pending2"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "1047540008434079",
+        "recipientPhoneNumber": "={{ $('Loop Over Items1').item.json.Phone_Number.toString() }}",
+        "textBody": "=hi {{ $('Loop Over Items1').item.json.Client_Name }},\nThis is a gentle reminder that an outstanding payment of ₹{{ $('Loop Over Items1').item.json.Outstanding_Amount }} is pending.\n\nWe request you to kindly complete the payment on or before {{ $('Loop Over Items1').item.json.Due_Date }}\nto avoid any inconvenience.\n\nThank you for your cooperation.\n\nBest regards,\n{{ $('Webhook all').item.json.body.name }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        752,
+        1136
+      ],
+      "id": "465fd7dd-423e-4725-867b-11cd357cd388",
+      "name": "Send message1",
+      "webhookId": "df7a4b57-762a-413e-9235-b6ddb7e9cf20",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "CcOO7tMW1Qgo4aoL",
+          "name": "WhatsApp account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "AIwrite",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        48,
+        3312
+      ],
+      "id": "203c3f70-b01d-4e51-a3cd-7b056403829b",
+      "name": "Webhook3",
+      "webhookId": "24a5c8e3-152a-4ae9-bf10-f84470702528"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.prompt }}\nabove is the prompt from the user so write a short formal mail in the respect of what the user is asking for.\ngive the response in proper json format.\ndont give subject , give me only body of the mail.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        3280
+      ],
+      "id": "d5e67335-a722-4ea1-8371-d9949eec62ca",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        3520
+      ],
+      "id": "fd4a4d54-45e0-41ac-ace6-0ee398632adb",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iVoLtt6SobtCe9yZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"response\":\"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        3488
+      ],
+      "id": "09dcd0ff-39db-4d2e-a9de-73a3e853eed5",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1040,
+        3312
+      ],
+      "id": "facfb750-e9ee-4818-84cf-7d51d0cfa3b9",
+      "name": "Respond to Webhook6"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "welcomeEncrpted",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        -1104
+      ],
+      "id": "62793c75-4101-4092-ba6b-297152f790a3",
+      "name": "Webhook4",
+      "webhookId": "0e766ab3-ab64-4d13-8735-ade4d18737bf"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "uTVfPhFFnBGSqTBT",
+          "mode": "list",
+          "cachedResultName": "OrganizationsEncrpted",
+          "cachedResultUrl": "/projects/stBdUmDEN7jTK32O/datatables/uTVfPhFFnBGSqTBT"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "url",
+              "keyValue": "={{ $('Webhook4').item.json.body.url }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "automationStatus": "={{ $('Webhook4').item.json.body.automationStatus }}",
+            "url": "={{ $json.encrypted_url }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "automationStatus",
+              "displayName": "automationStatus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        592,
+        -1088
+      ],
+      "id": "36c59844-896b-45b5-b4d7-39266d36009f",
+      "name": "Upsert row(s)1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1008,
+        -1088
+      ],
+      "id": "19ac7d9d-9efb-4bb4-a0b4-6ee12acd7b21",
+      "name": "Respond to Webhook7"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "def encrypt(text, key):\n    encrypted = []\n    key_length = len(key)\n\n    for i in range(len(text)):\n        encrypted_char = ord(text[i]) ^ ord(key[i % key_length])\n        encrypted.append(str(encrypted_char))\n\n    return \"-\".join(encrypted)\n\n\n# INPUT\nsheet_url = _items[0][\"json\"][\"body\"][\"url\"]\nsecret_key = \"my_secret_key_123\"  # store this securely\n\nencrypted_url = encrypt(sheet_url, secret_key)\n\nreturn {\n    \"encrypted_url\": encrypted_url\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -1088
+      ],
+      "id": "87c96a58-8cbc-4510-a494-9fef1610d98b",
+      "name": "Code in Python"
+    },
+    {
+      "parameters": {
+        "content": "## Encrypt\n",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        16,
+        -1248
+      ],
+      "id": "d4743e67-7b49-4b05-a330-8237f9d4c892",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Decrypt\n",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        -1280
+      ],
+      "id": "d2a080f2-d200-463d-b396-20622d2a8ef6",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2464,
+        -1056
+      ],
+      "id": "6542d5eb-5a83-4b1b-a906-b17d617217dc",
+      "name": "Respond to Webhook8"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "def decrypt(encrypted_text, key):\n    decrypted = []\n    key_length = len(key)\n    parts = encrypted_text.split(\"-\")\n\n    for i in range(len(parts)):\n        decrypted_char = chr(int(parts[i]) ^ ord(key[i % key_length]))\n        decrypted.append(decrypted_char)\n\n    return \"\".join(decrypted)\n\n\n# INPUT\nencrypted_url = _items[0][\"json\"][\"url\"]\nsecret_key = \"my_secret_key_123\"\n\noriginal_url = decrypt(encrypted_url, secret_key)\n\nreturn {\n    \"original_url\": original_url\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        -1056
+      ],
+      "id": "dd7331cb-9d07-46ca-884b-c62cfe19c80d",
+      "name": "Code in Python1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "welcomeDe",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1568,
+        -1024
+      ],
+      "id": "c3331c87-a316-4726-9c4a-35607e692cbf",
+      "name": "Webhook5",
+      "webhookId": "0e766ab3-ab64-4d13-8735-ade4d18737bf"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "uTVfPhFFnBGSqTBT",
+          "mode": "list",
+          "cachedResultName": "OrganizationsEncrpted",
+          "cachedResultUrl": "/projects/stBdUmDEN7jTK32O/datatables/uTVfPhFFnBGSqTBT"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "url",
+              "keyValue": "={{ $json.EncryptedUrl }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1856,
+        -1152
+      ],
+      "id": "7062693e-7928-466a-bf2e-1332cf227cfd",
+      "name": "Get row(s)1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.body.url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.body.sheetName }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        352,
+        3920
+      ],
+      "id": "b25fb677-0837-40c0-8731-e402a56ef952",
+      "name": "Get row(s) in sheet6",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vm6od17GOE6TJgeJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reportGen",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        3920
+      ],
+      "id": "947112f4-94db-4c13-9895-e3a722af5464",
+      "name": "Webhook6",
+      "webhookId": "edf9e9d9-e109-44e3-a48d-f6ee855f5355"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}\nSheets Data:\n{{ $json.invoices }}\n\nGive me the detailed short summary report wrt the particulars that the user has asked.\ngive me the html code of the report\n",
+        "hasOutputParser": true,
+        "options": {
+          "maxIterations": 10,
+          "batching": {
+            "batchSize": 1,
+            "delayBetweenBatches": 1000
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        768,
+        3888
+      ],
+      "id": "924a59a6-fc52-4808-a65a-6fc7401aebab",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        736,
+        4112
+      ],
+      "id": "8ed30876-5c2d-4f5d-9e61-0916d4aa02f8",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Fljhxt7i0wW0fy9h",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html_content": "={{ $json.output.report }}",
+        "output_filename": "report"
+      },
+      "type": "n8n-nodes-htmlcsstopdf.htmlcsstopdf",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        3904
+      ],
+      "id": "3f968567-5a2b-4b48-83b6-3b897d4db482",
+      "name": "Convert HTML to PDF",
+      "credentials": {
+        "htmlcsstopdfApi": {
+          "id": "po0QQZTbYnc3BLhQ",
+          "name": "HTML to PDF account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"report\":\"Html code here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        4112
+      ],
+      "id": "f3d5c01c-2749-4f76-b8f6-86cb38e90ea8",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect all rows into one array\nconst invoices = items.map(item => item.json);\n\n// Wrap into a single variable\nconst data = {\n  invoices: invoices,\n  prompt: $('Webhook6').first().json.body.prompt\n};\n\n// Return as a single item\nreturn [\n  {\n    json: data\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        3920
+      ],
+      "id": "f815e151-514a-4782-8ca1-2f0c8da82ae7",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1536,
+        3920
+      ],
+      "id": "7b9f960d-c54e-460e-a6a3-3d9bbabcab38",
+      "name": "Respond to Webhook9"
+    }
+  ],
+  "pinData": {
+    "Webhook all": [
+      {
+        "json": {
+          "headers": {
+            "host": "gadgetejas.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.51.0",
+            "content-length": "131",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "103.167.131.169",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9c297d1b74d5ffa9-BOM",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "postman-token": "a10d7e82-5eac-44c7-99bb-90cc530a4651",
+            "x-forwarded-for": "103.167.131.169, 172.69.87.147",
+            "x-forwarded-host": "gadgetejas.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-25-79cb8df8b5-pgfsj",
+            "x-is-trusted": "yes",
+            "x-real-ip": "103.167.131.169"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "url": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit?usp=sharing",
+            "body": "hiii"
+          },
+          "webhookUrl": "https://gadgetejas.app.n8n.cloud/webhook-test/allReminder",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Get row(s) in sheet2": [
+      {
+        "json": {
+          "row_number": 2,
+          "Invoice_ID": "INV-101",
+          "Client_Name": "Rahul Mehta",
+          "Email": "2022.tejas.gadge@ves.ac.in",
+          "Phone_Number": 919876543210,
+          "Outstanding_Amount": 2500,
+          "Due_Date": "2026-01-25",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "Client said will pay tomorrow",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 3,
+          "Invoice_ID": "INV-102",
+          "Client_Name": "Anjali Shah",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919812345678,
+          "Outstanding_Amount": 4800,
+          "Due_Date": "2026-01-18",
+          "Payment_Status": "partial",
+          "Last_Reminder_Sent": "2026-01-15",
+          "Preferred_Channel": "both",
+          "Remarks": "Requested invoice again",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 4,
+          "Invoice_ID": "INV-103",
+          "Client_Name": "Akash Verma",
+          "Email": "tejasgadge903@gmail.com",
+          "Phone_Number": 919900112233,
+          "Outstanding_Amount": 1200,
+          "Due_Date": "2026-01-10",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-08",
+          "Preferred_Channel": "email",
+          "Remarks": "Paid via GPay",
+          "Last_Payment_Date": "2026-01-10",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 5,
+          "Invoice_ID": "INV-104",
+          "Client_Name": "Pooja Nair",
+          "Email": "tejasgadge2504@gmail.com",
+          "Phone_Number": 919811223344,
+          "Outstanding_Amount": 3500,
+          "Due_Date": "2026-01-28",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 6,
+          "Invoice_ID": "INV-105",
+          "Client_Name": "Amit Kulkarni",
+          "Email": "teaminspire2226@gmail.com",
+          "Phone_Number": 919822334455,
+          "Outstanding_Amount": 999,
+          "Due_Date": "2026-01-22",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "email",
+          "Remarks": "No response yet",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 7,
+          "Invoice_ID": "INV-106",
+          "Client_Name": "Sneha Iyer",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919833445566,
+          "Outstanding_Amount": 7200,
+          "Due_Date": "2026-01-05",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-03",
+          "Preferred_Channel": "both",
+          "Remarks": "Thank you sent",
+          "Last_Payment_Date": "2026-01-05",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 8,
+          "Invoice_ID": "INV-107",
+          "Client_Name": "Rohan Gupta",
+          "Email": "2022.tejas.gadge@ves.ac.in",
+          "Phone_Number": 919844556677,
+          "Outstanding_Amount": 1800,
+          "Due_Date": "2026-01-30",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 9,
+          "Invoice_ID": "INV-108",
+          "Client_Name": "Neha Joshi",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919855667788,
+          "Outstanding_Amount": 5400,
+          "Due_Date": "2026-01-12",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-10",
+          "Preferred_Channel": "email",
+          "Remarks": "Paid after reminder",
+          "Last_Payment_Date": "2026-01-12",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 10,
+          "Invoice_ID": "INV-109",
+          "Client_Name": "Sameer Khan",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919866778899,
+          "Outstanding_Amount": 2600,
+          "Due_Date": "2026-01-27",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "both",
+          "Remarks": "Will pay after 3 days",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      },
+      {
+        "json": {
+          "row_number": 11,
+          "Invoice_ID": "INV-110",
+          "Client_Name": "Ganesh Shelar",
+          "Email": "2022.ganesh.shelar@ves.ac.in",
+          "Phone_Number": 919877889900,
+          "Outstanding_Amount": 1500,
+          "Due_Date": "2026-01-20",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "email",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        }
+      }
+    ],
+    "Webhook paid": [
+      {
+        "json": {
+          "headers": {
+            "host": "gadgetejas.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.51.0",
+            "content-length": "131",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "103.167.131.169",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9c297d1b74d5ffa9-BOM",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "postman-token": "a10d7e82-5eac-44c7-99bb-90cc530a4651",
+            "x-forwarded-for": "103.167.131.169, 172.69.87.147",
+            "x-forwarded-host": "gadgetejas.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-25-79cb8df8b5-pgfsj",
+            "x-is-trusted": "yes",
+            "x-real-ip": "103.167.131.169"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "url": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit?usp=sharing",
+            "body": ""
+          },
+          "webhookUrl": "https://gadgetejas.app.n8n.cloud/webhook-test/allReminder",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "gadgetejas.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.51.0",
+            "content-length": "162",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "103.167.131.169",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9c29a125342f48ec-BOM",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "postman-token": "25998398-420d-4b83-9c95-c99a14f379ac",
+            "x-forwarded-for": "103.167.131.169, 172.69.87.147",
+            "x-forwarded-host": "gadgetejas.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-25-79cb8df8b5-grhgl",
+            "x-is-trusted": "yes",
+            "x-real-ip": "103.167.131.169"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "url": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit?usp=sharing",
+            "body": "",
+            "automationStatus": "true"
+          },
+          "webhookUrl": "https://gadgetejas.app.n8n.cloud/webhook-test/welcome",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Get row(s) in sheet4": [
+      {
+        "json": {
+          "row_number": 2,
+          "Invoice_ID": "INV-101",
+          "Client_Name": "Rahul Mehta",
+          "Email": "2022.tejas.gadge@ves.ac.in",
+          "Phone_Number": 919876543210,
+          "Outstanding_Amount": 2500,
+          "Due_Date": "2026-01-25",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "Client said will pay tomorrow",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 3,
+          "Invoice_ID": "INV-102",
+          "Client_Name": "Anjali Shah",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919812345678,
+          "Outstanding_Amount": 4800,
+          "Due_Date": "2026-01-18",
+          "Payment_Status": "partial",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "both",
+          "Remarks": "Requested invoice again",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 4,
+          "Invoice_ID": "INV-103",
+          "Client_Name": "Akash Verma",
+          "Email": "tejasgadge903@gmail.com",
+          "Phone_Number": 919900112233,
+          "Outstanding_Amount": 1200,
+          "Due_Date": "2026-01-10",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-08",
+          "Preferred_Channel": "email",
+          "Remarks": "Paid via GPay",
+          "Last_Payment_Date": "2026-01-10",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 5,
+          "Invoice_ID": "INV-104",
+          "Client_Name": "Pooja Nair",
+          "Email": "tejasgadge2504@gmail.com",
+          "Phone_Number": 919811223344,
+          "Outstanding_Amount": 3500,
+          "Due_Date": "2026-01-28",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 6,
+          "Invoice_ID": "INV-105",
+          "Client_Name": "Amit Kulkarni",
+          "Email": "teaminspire2226@gmail.com",
+          "Phone_Number": 919822334455,
+          "Outstanding_Amount": 999,
+          "Due_Date": "2026-01-22",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "email",
+          "Remarks": "No response yet",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 7,
+          "Invoice_ID": "INV-106",
+          "Client_Name": "Sneha Iyer",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919833445566,
+          "Outstanding_Amount": 7200,
+          "Due_Date": "2026-01-05",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-03",
+          "Preferred_Channel": "both",
+          "Remarks": "Thank you sent",
+          "Last_Payment_Date": "2026-01-05",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 8,
+          "Invoice_ID": "INV-107",
+          "Client_Name": "Rohan Gupta",
+          "Email": "2022.tejas.gadge@ves.ac.in",
+          "Phone_Number": 919844556677,
+          "Outstanding_Amount": 1800,
+          "Due_Date": "2026-01-30",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 9,
+          "Invoice_ID": "INV-108",
+          "Client_Name": "Neha Joshi",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919855667788,
+          "Outstanding_Amount": 5400,
+          "Due_Date": "2026-01-12",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-10",
+          "Preferred_Channel": "email",
+          "Remarks": "Paid after reminder",
+          "Last_Payment_Date": "2026-01-12",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 10,
+          "Invoice_ID": "INV-109",
+          "Client_Name": "Sameer Khan",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919866778899,
+          "Outstanding_Amount": 2600,
+          "Due_Date": "2026-01-27",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "both",
+          "Remarks": "Will pay after 3 days",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 11,
+          "Invoice_ID": "INV-110",
+          "Client_Name": "Ganesh Shelar",
+          "Email": "2022.ganesh.shelar@ves.ac.in",
+          "Phone_Number": 919877889900,
+          "Outstanding_Amount": 1500,
+          "Due_Date": "2026-01-20",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "email",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Send a message1": [
+      {
+        "json": {
+          "id": "19beed6efb990d58",
+          "threadId": "19beed6efb990d58",
+          "labelIds": [
+            "SENT"
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Get row(s) in sheet": [
+      {
+        "json": {
+          "row_number": 2,
+          "Invoice_ID": "INV-101",
+          "Client_Name": "Rahul Mehta",
+          "Email": "2022.tejas.gadge@ves.ac.in",
+          "Phone_Number": 919876543210,
+          "Outstanding_Amount": 2500,
+          "Due_Date": "2026-01-25",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "Client said will pay tomorrow",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 3,
+          "Invoice_ID": "INV-102",
+          "Client_Name": "Anjali Shah",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919812345678,
+          "Outstanding_Amount": 4800,
+          "Due_Date": "2026-01-18",
+          "Payment_Status": "partial",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "both",
+          "Remarks": "Customer acknowledges outstanding payment and will pay on Tuesday.",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 4,
+          "Invoice_ID": "INV-103",
+          "Client_Name": "Akash Verma",
+          "Email": "tejasgadge903@gmail.com",
+          "Phone_Number": 919900112233,
+          "Outstanding_Amount": 1200,
+          "Due_Date": "2026-01-10",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-08",
+          "Preferred_Channel": "email",
+          "Remarks": "Paid via GPay",
+          "Last_Payment_Date": "2026-01-10",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 5,
+          "Invoice_ID": "INV-104",
+          "Client_Name": "Pooja Nair",
+          "Email": "tejasgadge2504@gmail.com",
+          "Phone_Number": 919811223344,
+          "Outstanding_Amount": 3500,
+          "Due_Date": "2026-01-28",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 6,
+          "Invoice_ID": "INV-105",
+          "Client_Name": "Amit Kulkarni",
+          "Email": "teaminspire2226@gmail.com",
+          "Phone_Number": 919822334455,
+          "Outstanding_Amount": 999,
+          "Due_Date": "2026-01-22",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "email",
+          "Remarks": "No response yet",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 7,
+          "Invoice_ID": "INV-106",
+          "Client_Name": "Sneha Iyer",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919833445566,
+          "Outstanding_Amount": 7200,
+          "Due_Date": "2026-01-05",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-03",
+          "Preferred_Channel": "both",
+          "Remarks": "Thank you sent",
+          "Last_Payment_Date": "2026-01-05",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 8,
+          "Invoice_ID": "INV-107",
+          "Client_Name": "Rohan Gupta",
+          "Email": "2022.tejas.gadge@ves.ac.in",
+          "Phone_Number": 919844556677,
+          "Outstanding_Amount": 1800,
+          "Due_Date": "2026-01-30",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "whatsapp",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 9,
+          "Invoice_ID": "INV-108",
+          "Client_Name": "Neha Joshi",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919855667788,
+          "Outstanding_Amount": 5400,
+          "Due_Date": "2026-01-12",
+          "Payment_Status": "paid",
+          "Last_Reminder_Sent": "2026-01-10",
+          "Preferred_Channel": "email",
+          "Remarks": "Paid after reminder",
+          "Last_Payment_Date": "2026-01-12",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 10,
+          "Invoice_ID": "INV-109",
+          "Client_Name": "Sameer Khan",
+          "Email": "2022.anisha.shankar@ves.ac.in",
+          "Phone_Number": 919866778899,
+          "Outstanding_Amount": 2600,
+          "Due_Date": "2026-01-27",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "both",
+          "Remarks": "Will pay after 3 days",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "row_number": 11,
+          "Invoice_ID": "INV-110",
+          "Client_Name": "Ganesh Shelar",
+          "Email": "2022.ganesh.shelar@ves.ac.in",
+          "Phone_Number": 919877889900,
+          "Outstanding_Amount": 1500,
+          "Due_Date": "2026-01-20",
+          "Payment_Status": "pending",
+          "Last_Reminder_Sent": "2026-01-24",
+          "Preferred_Channel": "email",
+          "Remarks": "",
+          "Last_Payment_Date": "",
+          "GST_Number": "27ABCDE1234F1Z5"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Webhook3": [
+      {
+        "json": {
+          "headers": {
+            "host": "gadgetejas.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.51.0",
+            "content-length": "103",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "152.52.34.131",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9c2e912d36b3ff67-BOM",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "postman-token": "6359a394-da0f-4912-adf9-4816cb4e62d3",
+            "x-forwarded-for": "152.52.34.131, 172.69.95.200",
+            "x-forwarded-host": "gadgetejas.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-25-79cb8df8b5-78hhn",
+            "x-is-trusted": "yes",
+            "x-real-ip": "152.52.34.131"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "prompt": "Give me a email for announcing 10% discount at all jeans collection Gadge Garments"
+          },
+          "webhookUrl": "https://gadgetejas.app.n8n.cloud/webhook-test/AIwrite",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "AI Agent1": [
+      {
+        "json": {
+          "output": {
+            "response": "Dear Valued Customer,\n\nWe are excited to announce a special offer at Gadge Garments! Enjoy a 10% discount on our entire jeans collection, available for a limited time.\n\nDiscover our wide range of styles, fits, and washes, crafted with quality and comfort in mind. Whether you're looking for classic denim, trendy designs, or everyday essentials, now is the perfect time to update your wardrobe.\n\nVisit us in-store or shop online to take advantage of this exclusive discount.\n\nSincerely,\nThe Gadge Garments Team"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Webhook4": [
+      {
+        "json": {
+          "headers": {
+            "host": "gadgetejas.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.51.0",
+            "content-length": "162",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "103.167.131.169",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9c29a125342f48ec-BOM",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "postman-token": "25998398-420d-4b83-9c95-c99a14f379ac",
+            "x-forwarded-for": "103.167.131.169, 172.69.87.147",
+            "x-forwarded-host": "gadgetejas.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-25-79cb8df8b5-grhgl",
+            "x-is-trusted": "yes",
+            "x-real-ip": "103.167.131.169"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "url": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit?usp=sharing",
+            "body": "",
+            "automationStatus": "true"
+          },
+          "webhookUrl": "https://gadgetejas.app.n8n.cloud/webhook-test/welcome",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Webhook5": [
+      {
+        "json": {
+          "EncryptedUrl": "5-13-43-3-22-89-93-74-16-48-8-22-87-56-94-93-84-1-28-113-16-10-14-93-22-4-45-14-4-29-44-89-87-86-25-10-112-23-74-82-6-33-30-54-28-29-61-12-110-2-116-1-19-12-75-61-4-37-46-27-6-8-10-23-53-120-119-98-85-0-17-25-58-86-30-20-24-41-70-8-31-57-120-29-86-9-16-43-76-16-16-2-88-7-55-10-23-16-49-86"
+        }
+      }
+    ],
+    "Webhook6": [
+      {
+        "json": {
+          "headers": {
+            "host": "gadgetejas.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.51.0",
+            "content-length": "460",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "152.52.34.131",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9c2f33ba6199ff72-BOM",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "postman-token": "06066c72-c385-49be-8489-58dbf8d71897",
+            "x-forwarded-for": "152.52.34.131, 172.69.178.143",
+            "x-forwarded-host": "gadgetejas.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-25-79cb8df8b5-pgfsj",
+            "x-is-trusted": "yes",
+            "x-real-ip": "152.52.34.131"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "url": "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/edit?usp=sharing",
+            "sheetName": "Sheet1",
+            "prompt": "Generate a visual financial report for January 2026 from the invoice sheet.Create charts for: (1) total income received vs outstanding amount, (2) invoice count by payment status (paid, pending, partial), and (3) overdue vs upcoming dues. Also include key totals, percentages, and a short summary."
+          },
+          "webhookUrl": "https://gadgetejas.app.n8n.cloud/webhook-test/reportGen",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "AI Agent2": [
+      {
+        "json": {
+          "output": {
+            "report": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Financial Report - January 2026</title>\n    <script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>\n    <style>\n        body {\n            font-family: Arial, sans-serif;\n            margin: 20px;\n            background-color: #f4f7f6;\n            color: #333;\n        }\n        .container {\n            max-width: 1000px;\n            margin: auto;\n            background-color: #fff;\n            padding: 30px;\n            border-radius: 8px;\n            box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n        }\n        h1, h2 {\n            color: #0056b3;\n            text-align: center;\n            margin-bottom: 20px;\n        }\n        .summary, .key-metrics {\n            margin-bottom: 30px;\n            border-bottom: 1px solid #eee;\n            padding-bottom: 20px;\n        }\n        .key-metrics div {\n            background-color: #e9f7ef;\n            padding: 15px;\n            border-radius: 5px;\n            margin-bottom: 10px;\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n        }\n        .key-metrics div strong {\n            color: #007bff;\n        }\n        .chart-section {\n            display: flex;\n            flex-wrap: wrap;\n            gap: 20px;\n            justify-content: center;\n            margin-top: 20px;\n        }\n        .chart-container {\n            flex: 1;\n            min-width: 300px;\n            max-width: 45%;\n            background-color: #f9f9f9;\n            padding: 20px;\n            border-radius: 8px;\n            box-shadow: 0 1px 5px rgba(0,0,0,0.05);\n        }\n        .chart-container canvas {\n            max-height: 300px;\n            width: 100% !important;\n            height: auto !important;\n        }\n        .footer {\n            text-align: center;\n            margin-top: 40px;\n            padding-top: 20px;\n            border-top: 1px solid #eee;\n            color: #777;\n            font-size: 0.9em;\n        }\n        @media (max-width: 768px) {\n            .chart-container {\n                max-width: 100%;\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <h1>Financial Report - January 2026</h1>\n\n        <div class=\"summary\">\n            <h2>Summary for January 2026</h2>\n            <p>\n                This report provides a financial overview for January 2026. During this month, a total of <strong>8 invoices</strong> were issued, amounting to <strong>$8000</strong>. Of these, <strong>$2200</strong> has been successfully collected, leaving <strong>$5800</strong> outstanding specifically from January's invoices.\n                Overall, considering all invoices in the system as of January 31, 2026, <strong>$3700</strong> has been received, with a total of <strong>$5800</strong> still outstanding across all invoices. The payment status breakdown for January 2026 invoices shows that <strong>25% are Paid</strong>, <strong>50% are Pending</strong>, and <strong>25% are Partial</strong>.\n                As of January 31, 2026, a significant sum of <strong>$4700</strong> in dues is overdue, while <strong>$1100</strong> are upcoming.\n            </p>\n        </div>\n\n        <div class=\"key-metrics\">\n            <h2>Key Metrics (January 2026)</h2>\n            <div><span>Total Invoices Issued (Jan 2026):</span> <strong>8</strong></div>\n            <div><span>Total Amount Invoiced (Jan 2026):</span> <strong>$8000</strong></div>\n            <div><span>Amount Received (from Jan 2026 Invoices):</span> <strong>$2200</strong></div>\n            <div><span>Outstanding (from Jan 2026 Invoices):</span> <strong>$5800</strong></div>\n            <div><span>Overall Income Received (All Invoices to Jan 31, 2026):</span> <strong>$3700</strong></div>\n            <div><span>Overall Outstanding Amount (All Invoices to Jan 31, 2026):</span> <strong>$5800</strong></div>\n            <div><span>Overdue Dues (as of Jan 31, 2026):</span> <strong>$4700</strong></div>\n            <div><span>Upcoming Dues (as of Jan 31, 2026):</span> <strong>$1100</strong></div>\n        </div>\n\n        <div class=\"chart-section\">\n            <div class=\"chart-container\">\n                <h3>Total Income Received vs Outstanding Amount (Overall)</h3>\n                <canvas id=\"incomeOutstandingChart\"></canvas>\n            </div>\n            <div class=\"chart-container\">\n                <h3>Invoice Count by Payment Status (Jan 2026 Invoices)</h3>\n                <canvas id=\"statusChart\"></canvas>\n            </div>\n            <div class=\"chart-container\">\n                <h3>Overdue vs Upcoming Dues (as of Jan 31, 2026)</h3>\n                <canvas id=\"duesChart\"></canvas>\n            </div>\n        </div>\n\n        <div class=\"footer\">\n            <p>Report Generated on: January 31, 2026</p>\n        </div>\n    </div>\n\n    <script>\n        // Data for charts\n        const totalIncomeReceived = 3700;\n        const totalOutstandingAmount = 5800;\n\n        const statusCounts = {\n            paid: 2,\n            pending: 4,\n            partial: 2\n        };\n\n        const overdueDues = 4700;\n        const upcomingDues = 1100;\n\n        // Chart 1: Total Income Received vs Outstanding Amount\n        const incomeOutstandingCtx = document.getElementById('incomeOutstandingChart').getContext('2d');\n        new Chart(incomeOutstandingCtx, {\n            type: 'bar',\n            data: {\n                labels: ['Income Received', 'Outstanding Amount'],\n                datasets: [{\n                    label: 'Amount ($)',\n                    data: [totalIncomeReceived, totalOutstandingAmount],\n                    backgroundColor: [\n                        'rgba(75, 192, 192, 0.6)',\n                        'rgba(255, 99, 132, 0.6)'\n                    ],\n                    borderColor: [\n                        'rgba(75, 192, 192, 1)',\n                        'rgba(255, 99, 132, 1)'\n                    ],\n                    borderWidth: 1\n                }]\n            },\n            options: {\n                responsive: true,\n                scales: {\n                    y: {\n                        beginAtZero: true\n                    }\n                },\n                plugins: {\n                    title: {\n                        display: false\n                    },\n                    legend: {\n                        display: false\n                    }\n                }\n            }\n        });\n\n        // Chart 2: Invoice Count by Payment Status\n        const statusCtx = document.getElementById('statusChart').getContext('2d');\n        new Chart(statusCtx, {\n            type: 'pie',\n            data: {\n                labels: ['Paid', 'Pending', 'Partial'],\n                datasets: [{\n                    data: [statusCounts.paid, statusCounts.pending, statusCounts.partial],\n                    backgroundColor: [\n                        'rgba(75, 192, 192, 0.6)',\n                        'rgba(255, 159, 64, 0.6)',\n                        'rgba(54, 162, 235, 0.6)'\n                    ],\n                    borderColor: [\n                        'rgba(75, 192, 192, 1)',\n                        'rgba(255, 159, 64, 1)',\n                        'rgba(54, 162, 235, 1)'\n                    ],\n                    borderWidth: 1\n                }]\n            },\n            options: {\n                responsive: true,\n                plugins: {\n                    title: {\n                        display: false\n                    },\n                    legend: {\n                        position: 'bottom'\n                    }\n                }\n            }\n        });\n\n        // Chart 3: Overdue vs Upcoming Dues\n        const duesCtx = document.getElementById('duesChart').getContext('2d');\n        new Chart(duesCtx, {\n            type: 'doughnut',\n            data: {\n                labels: ['Overdue Dues', 'Upcoming Dues'],\n                datasets: [{\n                    data: [overdueDues, upcomingDues],\n                    backgroundColor: [\n                        'rgba(255, 99, 132, 0.6)',\n                        'rgba(54, 162, 235, 0.6)'\n                    ],\n                    borderColor: [\n                        'rgba(255, 99, 132, 1)',\n                        'rgba(54, 162, 235, 1)'\n                    ],\n                    borderWidth: 1\n                }]\n            },\n            options: {\n                responsive: true,\n                plugins: {\n                    title: {\n                        display: false\n                    },\n                    legend: {\n                        position: 'bottom'\n                    }\n                }\n            }\n        });\n    </script>\n</body>\n</html>"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If pending": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook all": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook paid": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message3": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If pending1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If pending1": {
+      "main": [
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert row(s)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet4": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items4": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If pending2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet5": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If pending2": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook4": {
+      "main": [
+        [
+          {
+            "node": "Code in Python",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert row(s)1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook5": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)1": {
+      "main": [
+        [
+          {
+            "node": "Code in Python1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook6": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet6": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Convert HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "0a70f2fb-a0c3-4a38-8dc3-7c6b8279912a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1ed147d02dca2297df6a1689f3b3407c7ce54b557dccafb02a4feda4697f627d"
+  },
+  "id": "hLe2HxMR-xVHsrT371hdJ",
+  "tags": []
+}
