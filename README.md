@@ -16,6 +16,7 @@
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Installation](#installation)
+- [n8n Workflow Setup](#n8n-workflow-setup)
 - [Usage](#usage)
 - [Example Use Cases](#example-use-cases)
 - [Security](#security)
@@ -101,7 +102,7 @@ n8n Webhook (Automation Engine)
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/pingo.git
+git clone https://github.com/hahaanisha/Pingo.git
 cd pingo
 ```
 
@@ -114,9 +115,52 @@ cd pingo
 
 ### 3. Set Up n8n
 
-1. Create a webhook workflow in n8n
-2. Add **Email** and **WhatsApp** nodes
-3. Copy the webhook URL into the extension config file
+1. Install and launch n8n (see [n8n Workflow Setup](#n8n-workflow-setup) below)
+2. Import the provided workflow JSON files
+3. Copy the generated webhook URL into the extension config file
+
+---
+
+## n8n Workflow Setup
+
+The `n8n/` folder in this repository contains pre-built workflow JSON files that you can import directly into n8n — no need to build the automation from scratch.
+
+### Step 1 — Launch n8n
+
+Run n8n locally using npx:
+
+```bash
+npx n8n
+```
+
+Then open your browser and go to `http://localhost:5678`.
+
+> Alternatively, use [n8n Cloud](https://n8n.io/) for a hosted instance.
+
+### Step 2 — Import the Workflow JSON
+
+1. In the n8n dashboard, click **"New Workflow"**
+2. Click the **≡ menu icon** (top-right of the canvas)
+3. Select **"Import from File"**
+4. Navigate and select the relevant `.json` file (here it is : N8N Agents):
+5. Click **"Import"** — the full workflow canvas will load automatically
+
+### Step 3 — Configure Credentials
+
+After importing, update the following nodes with your own credentials:
+
+- **Gmail / SMTP node** → Add your Google account or SMTP details under `Credentials → Gmail OAuth2`
+- **WhatsApp node** → Enter your WhatsApp Business id and auth token
+- **Google Sheets node** → Connect your Google account via OAuth and select your target sheet
+
+> 💡 Go to **Settings → Credentials** in n8n to manage all saved credentials in one place.
+
+### Step 5 — Activate the Workflow
+
+1. Toggle the workflow status from **Inactive → Active** using the switch in the top-right of the n8n canvas
+2. The webhook is now live and ready to receive triggers from the Pingo extension
+
+> ⚠️ Workflows must be set to **Active** to respond to incoming webhook calls. Inactive workflows will silently ignore all requests.
 
 ---
 
