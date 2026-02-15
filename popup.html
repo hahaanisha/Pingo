@@ -74,6 +74,11 @@
       color: #1976d2;
     }
 
+    .icon-btn.report-btn:hover {
+      background: #f3e5f5;
+      color: #7b1fa2;
+    }
+
     .close-btn {
       background: none;
       border: none;
@@ -550,8 +555,12 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Automate Reminders</h1>
+      <h1>💰 Payment Reminders</h1>
       <div class="header-buttons">
+        <button class="icon-btn report-btn" id="reportBtn">
+          📊
+          <span class="tooltip">Download report</span>
+        </button>
         <button class="icon-btn download-btn" id="downloadBtn">
           📥
           <span class="tooltip">Please make sure your CSV looks like the sample CSV</span>
@@ -682,6 +691,34 @@ Thanks,
       <div class="modal-footer">
         <button class="btn-cancel" id="aiCancelBtn2">Cancel</button>
         <button class="btn-generate" id="aiGenerateBtn">Generate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Generation Modal -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>📊 Generate Report</h3>
+        <button class="modal-close" id="reportCancelBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="reportSheetLink" style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500; color: #555;">Sheet Link</label>
+          <input type="url" id="reportSheetLink" placeholder="https://docs.google.com/spreadsheets/d/..." style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="reportSheetName" style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500; color: #555;">Sheet Name</label>
+          <input type="text" id="reportSheetName" placeholder="e.g., Sheet1" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="reportPrompt" style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500; color: #555;">Report Prompt</label>
+          <textarea id="reportPrompt" placeholder="Example: Generate a visual financial report for January 2026..." style="width: 100%; min-height: 100px; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px; font-family: inherit; resize: vertical;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" id="reportCancelBtn2">Cancel</button>
+        <button class="btn-generate" id="reportGenerateBtn">Generate Report</button>
       </div>
     </div>
   </div>

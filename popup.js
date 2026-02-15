@@ -18,13 +18,21 @@ const N8N_ALL_REMINDER_WEBHOOK =
 const N8N_PAID_REMINDER_WEBHOOK =
   "https://gadgetejas.app.n8n.cloud/webhook/paidReminder";
 const N8N_AI_WRITE_WEBHOOK = "https://gadgetejas.app.n8n.cloud/webhook/AIwrite";
+const N8N_REPORT_GEN_WEBHOOK =
+  "https://gadgetejas.app.n8n.cloud/webhook/reportGen";
 
 // Sample CSV download URL
 const SAMPLE_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1tDjiwxDS_0GljS8XgWKoYconjIEQ8yNj_5lqlv-mffI/export?format=xlsx";
 
 // DOM elements - will be initialized after DOM loads
-let setupForm, mainView, configForm, settingsBtn, closeBtn, downloadBtn;
+let setupForm,
+  mainView,
+  configForm,
+  settingsBtn,
+  closeBtn,
+  downloadBtn,
+  reportBtn;
 let loadingState, successMsg, automationToggle;
 let reminderType, reminderTo, customBodyToggleGroup, customBodyToggle;
 let customBodySection, customBodyText, sendReminderBtn;
@@ -34,6 +42,8 @@ let aiBtn,
   aiCancelBtn,
   aiCancelBtn2,
   aiGenerateBtn;
+let reportModal, reportSheetLink, reportSheetName, reportPrompt;
+let reportCancelBtn, reportCancelBtn2, reportGenerateBtn;
 
 // Initialize the extension
 document.addEventListener("DOMContentLoaded", async () => {
@@ -52,6 +62,7 @@ function initializeDOMElements() {
   settingsBtn = document.getElementById("settingsBtn");
   closeBtn = document.getElementById("closeBtn");
   downloadBtn = document.getElementById("downloadBtn");
+  reportBtn = document.getElementById("reportBtn");
   loadingState = document.getElementById("loadingState");
   successMsg = document.getElementById("successMsg");
   automationToggle = document.getElementById("automationToggle");
@@ -70,6 +81,14 @@ function initializeDOMElements() {
   aiCancelBtn = document.getElementById("aiCancelBtn");
   aiCancelBtn2 = document.getElementById("aiCancelBtn2");
   aiGenerateBtn = document.getElementById("aiGenerateBtn");
+
+  reportModal = document.getElementById("reportModal");
+  reportSheetLink = document.getElementById("reportSheetLink");
+  reportSheetName = document.getElementById("reportSheetName");
+  reportPrompt = document.getElementById("reportPrompt");
+  reportCancelBtn = document.getElementById("reportCancelBtn");
+  reportCancelBtn2 = document.getElementById("reportCancelBtn2");
+  reportGenerateBtn = document.getElementById("reportGenerateBtn");
 }
 
 // Load configuration from Chrome storage
@@ -173,6 +192,42 @@ function setupEventListeners() {
     downloadBtn.addEventListener("click", handleDownload);
   }
 
+  // Report button
+  if (reportBtn) {
+    reportBtn.addEventListener("click", () => {
+      if (reportModal) {
+        reportModal.classList.add("active");
+        // Pre-fill sheet link if available
+        if (reportSheetLink && config.sheetLink) {
+          reportSheetLink.value = config.sheetLink;
+        }
+        if (reportSheetName) reportSheetName.focus();
+      }
+    });
+  }
+
+  // Report cancel buttons
+  if (reportCancelBtn) {
+    reportCancelBtn.addEventListener("click", closeReportModal);
+  }
+  if (reportCancelBtn2) {
+    reportCancelBtn2.addEventListener("click", closeReportModal);
+  }
+
+  // Report generate button
+  if (reportGenerateBtn) {
+    reportGenerateBtn.addEventListener("click", handleReportGenerate);
+  }
+
+  // Close report modal when clicking outside
+  if (reportModal) {
+    reportModal.addEventListener("click", (e) => {
+      if (e.target === reportModal) {
+        closeReportModal();
+      }
+    });
+  }
+
   // Automation toggle
   if (automationToggle) {
     automationToggle.addEventListener("click", () => {
@@ -240,6 +295,14 @@ function setupEventListeners() {
 function closeAIModal() {
   if (aiPromptModal) aiPromptModal.classList.remove("active");
   if (aiPromptText) aiPromptText.value = "";
+}
+
+// Close Report modal
+function closeReportModal() {
+  if (reportModal) reportModal.classList.remove("active");
+  if (reportSheetLink) reportSheetLink.value = "";
+  if (reportSheetName) reportSheetName.value = "";
+  if (reportPrompt) reportPrompt.value = "";
 }
 
 // Handle download button click
@@ -535,6 +598,152 @@ async function handleAIGenerate() {
       "❌ Failed to generate AI content. Please check console.",
       "error",
     );
+  } finally {
+    showLoading(false);
+  }
+}
+
+// Handle report generation
+async function handleReportGenerate() {
+  if (!reportSheetLink || !reportSheetName || !reportPrompt) {
+    console.error("Report form elements not found");
+    return;
+  }
+
+  const url = reportSheetLink.value.trim();
+  const sheetName = reportSheetName.value.trim();
+  const prompt = reportPrompt.value.trim();
+
+  // Validate inputs
+  if (!url) {
+    showMessage("Please enter a sheet link", "error");
+    return;
+  }
+
+  if (!sheetName) {
+    showMessage("Please enter a sheet name", "error");
+    return;
+  }
+
+  if (!prompt) {
+    showMessage("Please enter a report prompt", "error");
+    return;
+  }
+
+  if (!isValidGoogleSheetsUrl(url)) {
+    showMessage("Please enter a valid Google Sheets URL", "error");
+    return;
+  }
+
+  // Close modal immediately
+  closeReportModal();
+
+  // Show loading state
+  showLoading(true);
+
+  try {
+    const payload = {
+      url: url,
+      sheetName: sheetName,
+      prompt: prompt,
+    };
+
+    console.log("=== Report Generation Request ===");
+    console.log("Sending to report webhook:", N8N_REPORT_GEN_WEBHOOK);
+    console.log("Payload:", JSON.stringify(payload, null, 2));
+
+    const response = await fetch(N8N_REPORT_GEN_WEBHOOK, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log("Response status:", response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    // Check if response has content
+    const contentType = response.headers.get("content-type");
+    console.log("Content-Type:", contentType);
+
+    // Check if response is a file download
+    if (
+      contentType &&
+      (contentType.includes("application/pdf") ||
+        contentType.includes("application/vnd.openxmlformats") ||
+        contentType.includes("application/octet-stream"))
+    ) {
+      // Response is a file, download it
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `report_${new Date().getTime()}.pdf`; // or get filename from header
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showMessage("✓ Report downloaded successfully!", "success");
+      return;
+    }
+
+    let result;
+    const responseText = await response.text();
+    console.log("Response text:", responseText);
+
+    // Try to parse as JSON if there's content
+    if (responseText && responseText.trim().length > 0) {
+      try {
+        result = JSON.parse(responseText);
+        console.log("=== Report Generation Response ===");
+        console.log("Parsed response:", JSON.stringify(result, null, 2));
+
+        // Check if response contains a download URL
+        if (
+          result.downloadUrl ||
+          result.url ||
+          result.fileUrl ||
+          result.reportUrl
+        ) {
+          const downloadUrl =
+            result.downloadUrl ||
+            result.url ||
+            result.fileUrl ||
+            result.reportUrl;
+          console.log("Download URL found:", downloadUrl);
+
+          // Open download URL in new tab
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.target = "_blank";
+          link.download = "report.pdf";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          showMessage("✓ Report download started!", "success");
+          return;
+        }
+      } catch (parseError) {
+        console.log("Response is not JSON, using as text");
+        result = { message: responseText };
+      }
+    } else {
+      console.log("Empty response received");
+      result = { message: "Report generation initiated" };
+    }
+
+    showMessage("✓ Report generation started successfully!", "success");
+  } catch (error) {
+    console.error("=== Report Generation Error ===");
+    console.error("Error:", error);
+    console.error("Error message:", error.message);
+    showMessage("❌ Failed to generate report. Please check console.", "error");
   } finally {
     showLoading(false);
   }
