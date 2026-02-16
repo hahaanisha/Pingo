@@ -77,7 +77,7 @@ Chrome Extension
       ▼
 n8n Webhook (Automation Engine)
       │
-      ├── Email Service (SMTP / Gmail API)
+      ├── Email Service (Gmail API)
       ├── WhatsApp API
       ├── Report Generator
       └── Logging Database / Sheet
@@ -91,9 +91,8 @@ n8n Webhook (Automation Engine)
 |---|---|
 | **Frontend** | Chrome Extension (JavaScript, HTML, CSS) |
 | **Automation** | n8n (Workflow automation engine) |
-| **APIs** | n8n Webhooks, Gmail API / SMTP, WhatsApp API |
+| **APIs** | n8n Webhooks, Gmail API, WhatsApp API |
 | **Data** | Google Sheets API |
-| **Security** | OAuth 2.0, Encrypted data transfer |
 
 ---
 
@@ -118,7 +117,6 @@ cd pingo
 1. Install and launch n8n (see [n8n Workflow Setup](#n8n-workflow-setup) below)
 2. Import the provided workflow JSON files
 3. Copy the generated webhook URL into the extension config file
-
 ---
 
 ## n8n Workflow Setup
@@ -155,12 +153,22 @@ After importing, update the following nodes with your own credentials:
 
 > 💡 Go to **Settings → Credentials** in n8n to manage all saved credentials in one place.
 
-### Step 5 — Activate the Workflow
+### Step 4 — Activate the Workflow
 
 1. Toggle the workflow status from **Inactive → Active** using the switch in the top-right of the n8n canvas
 2. The webhook is now live and ready to receive triggers from the Pingo extension
 
 > ⚠️ Workflows must be set to **Active** to respond to incoming webhook calls. Inactive workflows will silently ignore all requests.
+
+<p align="center">
+  <img src="readme/readme3.jpg" alt="Demo" width="700" />
+</p>
+<p align="center">
+  <img src="readme/readme4.jpg" alt="Demo" width="700" />
+</p>
+<p align="center">
+  <img src="readme/readme5.jpg" alt="Demo" width="700" />
+</p>
 
 ---
 
